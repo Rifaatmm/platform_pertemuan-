@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0f172a"/>
+  <title>Manajemen Barang | Platform 31</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Reset & Base ────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f172a;
+      --surface:   #1e293b;
+      --surface2:  #273449;
+      --border:    #334155;
+      --primary:   #38bdf8;
+      --primary-d: #0ea5e9;
+      --success:   #34d399;
+      --danger:    #f87171;
+      --warning:   #fbbf24;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+      --radius:    10px;
+      --font:      'Plus Jakarta Sans', sans-serif;
+      --mono:      'JetBrains Mono', monospace;
+      --shadow:    0 4px 24px rgba(0,0,0,.4);
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── Header ──────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 22px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .header-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--primary), #818cf8);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -.3px;
+    }
+    header span {
+      font-size: .8rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .badge {
+      margin-left: auto;
+      background: rgba(56,189,248,.15);
+      color: var(--primary);
+      border: 1px solid rgba(56,189,248,.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-family: var(--mono);
+      font-weight: 600;
+    }
+
+    /* ── Layout ──────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* ── Section title ───────────────────────────── */
+    .section-title {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* ── Card ────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow);
+      transition: border-color .2s;
+    }
+    .card.edit-active {
+      border-color: var(--warning);
+      box-shadow: 0 0 0 3px rgba(251,191,36,.1), var(--shadow);
+    }
+
+    /* ── Form ────────────────────────────────────── */
+    .form-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .form-header-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .form-header-icon.tambah { background: rgba(52,211,153,.15); }
+    .form-header-icon.edit   { background: rgba(251,191,36,.15); }
+    .form-title {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .form-mode-badge {
+      margin-left: auto;
+      font-size: .7rem;
+      font-family: var(--mono);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .form-mode-badge.post { background: rgba(52,211,153,.15); color: var(--success); border: 1px solid rgba(52,211,153,.3); }
+    .form-mode-badge.put  { background: rgba(251,191,36,.15); color: var(--warning); border: 1px solid rgba(251,191,36,.3); }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+    input[type="text"],
+    input[type="number"],
+    select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 11px 14px;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      width: 100%;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(56,189,248,.12);
+    }
+    .edit-active input:focus, .edit-active select:focus {
+      border-color: var(--warning);
+      box-shadow: 0 0 0 3px rgba(251,191,36,.12);
+    }
+    input::placeholder { color: #475569; }
+
+    /* ── Buttons ─────────────────────────────────── */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: .875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:hover  { opacity: .88; }
+    .btn:active { transform: scale(.97); }
+
+    .btn-primary  { background: var(--primary); color: #0f172a; }
+    .btn-warning  { background: var(--warning); color: #0f172a; }
+    .btn-ghost    { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger   { background: var(--danger); color: #0f172a; }
+    .btn-success  { background: var(--success); color: #0f172a; }
+
+    #btnBatal { display: none; }
+
+    /* ── Stats row ───────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 640px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .stat-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--text);
+    }
+    .stat-value.blue   { color: var(--primary); }
+    .stat-value.green  { color: var(--success); }
+    .stat-value.yellow { color: var(--warning); }
+
+    /* ── Table ───────────────────────────────────── */
+    .table-wrapper {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .table-toolbar {
+      background: var(--surface);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .table-toolbar h3 {
+      font-size: .95rem;
+      font-weight: 700;
+    }
+    #searchInput {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: .85rem;
+      outline: none;
+      width: 220px;
+    }
+    #searchInput:focus { border-color: var(--primary); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+    }
+    thead tr {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      padding: 13px 16px;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-align: left;
+      white-space: nowrap;
+    }
+    td {
+      padding: 14px 16px;
+      font-size: .9rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.025); }
+
+    .num { font-family: var(--mono); }
+    .harga-cell { color: var(--success); font-family: var(--mono); font-weight: 600; }
+    .stok-cell  { font-family: var(--mono); }
+    .stok-low   { color: var(--warning); }
+
+    .kategori-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 600;
+      background: rgba(56,189,248,.1);
+      color: var(--primary);
+      border: 1px solid rgba(56,189,248,.2);
+    }
+
+    /* ── Action buttons in table ─────────────────── */
+    .action-cell { display: flex; gap: 8px; }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: .78rem;
+      border-radius: 7px;
+    }
+
+    /* ── Empty / Loading state ───────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state p  { font-size: .9rem; }
+
+    /* ── Toast notification ──────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: .875rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .25s, transform .25s;
+      pointer-events: none;
+      z-index: 999;
+      max-width: 340px;
+    }
+    #toast.show  { opacity: 1; transform: translateY(0); }
+    #toast.ok    { background: #14532d; border: 1px solid #16a34a; color: #bbf7d0; }
+    #toast.error { background: #450a0a; border: 1px solid #dc2626; color: #fca5a5; }
+    #toast.info  { background: #0c4a6e; border: 1px solid #0284c7; color: #bae6fd; }
+
+    /* ── Spinner ─────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.2);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Scrollbar ───────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="header-icon">📦</div>
+  <div>
+    <h1>Manajemen Barang</h1>
+    <span>Platform 31 · Full CRUD PWA</span>
+  </div>
+  <span class="badge">REST API</span>
+</header>
+
+<div class="container">
+
+  <!-- ===== STATS ===== -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total Barang</div>
+      <div class="stat-value blue" id="statTotal">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Stok</div>
+      <div class="stat-value green" id="statStok">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Kategori</div>
+      <div class="stat-value yellow" id="statKategori">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Nilai</div>
+      <div class="stat-value" id="statNilai" style="font-size:1.1rem">—</div>
+    </div>
+  </div>
+
+  <!-- ===== FORM ===== -->
+  <p class="section-title">Form Input</p>
+  <div class="card" id="formCard">
+
+    <div class="form-header">
+      <div class="form-header-icon tambah" id="formIcon">➕</div>
+      <span class="form-title" id="formTitle">Tambah Barang Baru</span>
+      <span class="form-mode-badge post" id="formBadge">POST</span>
+    </div>
+
+    <form id="formBarang">
+      <!-- INPUT HIDDEN — menyimpan ID barang saat mode Edit -->
+      <input type="hidden" id="id_barang" value="" />
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Nama Barang</label>
+          <input type="text" id="nama_barang" placeholder="Contoh: Laptop Asus VivoBook" required />
+        </div>
+        <div class="form-group">
+          <label>Kategori</label>
+          <input type="text" id="kategori" placeholder="Contoh: Elektronik" required />
+        </div>
+        <div class="form-group">
+          <label>Harga (Rp)</label>
+          <input type="number" id="harga" placeholder="0" min="0" required />
+        </div>
+        <div class="form-group">
+          <label>Stok</label>
+          <input type="number" id="stok" placeholder="0" min="0" required />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="submit" class="btn btn-primary" id="btnSimpan">
+          <span>💾</span> Simpan
+        </button>
+        <button type="button" class="btn btn-ghost" id="btnBatal" onclick="batalEdit()">
+          ✖ Batal
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ===== TABLE ===== -->
+  <p class="section-title">Data Barang</p>
+  <div class="table-wrapper">
+    <div class="table-toolbar">
+      <h3>📋 Daftar Barang</h3>
+      <input type="text" id="searchInput" placeholder="🔍 Cari barang..." oninput="filterTabel()" />
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nama Barang</th>
+          <th>Kategori</th>
+          <th>Harga</th>
+          <th>Stok</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tabelBody">
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <div class="spinner"></div>
+              <p style="margin-top:12px">Memuat data...</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast"></div>
+
+<script>
+  // ============================================================
+  //  KONFIGURASI — sesuaikan dengan path folder di server kamu
+  // ============================================================
+  const BASE_URL = "http://localhost/platform31_crud";
+
+  const API = {
+    GET    : `${BASE_URL}/get_barang.php`,
+    POST   : `${BASE_URL}/tambah_barang.php`,
+    PUT    : `${BASE_URL}/edit_barang.php`,
+    DELETE : `${BASE_URL}/hapus_barang.php`,
+  };
+
+  // Cache data untuk filter lokal
+  let allData = [];
+
+  // ============================================================
+  //  TOAST NOTIFICATION
+  // ============================================================
+  let toastTimer;
+  function showToast(msg, type = "ok") {
+    const t   = document.getElementById("toast");
+    const ico = type === "ok" ? "✅" : type === "error" ? "❌" : "ℹ️";
+    t.innerHTML   = `<span>${ico}</span> ${msg}`;
+    t.className   = `show ${type}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = ""; }, 3000);
+  }
+
+  // ============================================================
+  //  STATISTIK
+  // ============================================================
+  function updateStats(data) {
+    const total     = data.length;
+    const stok      = data.reduce((s, b) => s + Number(b.stok), 0);
+    const kategori  = new Set(data.map(b => b.kategori)).size;
+    const nilai     = data.reduce((s, b) => s + Number(b.harga) * Number(b.stok), 0);
+
+    document.getElementById("statTotal").textContent   = total;
+    document.getElementById("statStok").textContent    = stok;
+    document.getElementById("statKategori").textContent= kategori;
+    document.getElementById("statNilai").textContent   =
+      "Rp " + nilai.toLocaleString("id-ID");
+  }
+
+  // ============================================================
+  //  RENDER TABEL
+  // ============================================================
+  function renderTabel(data) {
+    const tbody = document.getElementById("tabelBody");
+
+    if (!data.length) {
+      tbody.innerHTML = `
+        <tr><td colspan="6">
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>Belum ada data barang</p>
+          </div>
+        </td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map((b, i) => {
+      const stokClass = Number(b.stok) <= 5 ? "stok-cell stok-low" : "stok-cell";
+      return `
+        <tr>
+          <td class="num">${i + 1}</td>
+          <td><strong>${escHtml(b.nama_barang)}</strong></td>
+          <td><span class="kategori-tag">${escHtml(b.kategori)}</span></td>
+          <td class="harga-cell">Rp ${Number(b.harga).toLocaleString("id-ID")}</td>
+          <td class="${stokClass}">${b.stok} ${Number(b.stok) <= 5 ? "⚠️" : ""}</td>
+          <td>
+            <div class="action-cell">
+              <button class="btn btn-warning btn-sm"
+                onclick="isiFormEdit(${b.id}, '${escAttr(b.nama_barang)}', '${escAttr(b.kategori)}', ${b.harga}, ${b.stok})">
+                ✏️ Edit
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="hapusBarang(${b.id}, '${escAttr(b.nama_barang)}')">
+                🗑 Hapus
+              </button>
+            </div>
+          </td>
+        </tr>`;
+    }).join("");
+  }
+
+  // Escape helpers
+  const escHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const escAttr = s => String(s).replace(/'/g,"\\'");
+
+  // ============================================================
+  //  FILTER / SEARCH LOKAL
+  // ============================================================
+  function filterTabel() {
+    const q      = document.getElementById("searchInput").value.toLowerCase();
+    const result = allData.filter(b =>
+      b.nama_barang.toLowerCase().includes(q) ||
+      b.kategori.toLowerCase().includes(q)
+    );
+    renderTabel(result);
+  }
+
+  // ============================================================
+  //  GET — Ambil semua barang
+  // ============================================================
+  async function getBarang() {
+    try {
+      const res  = await fetch(API.GET);
+      const data = await res.json();
+      allData    = data;
+      updateStats(data);
+      renderTabel(data);
+    } catch (err) {
+      console.error(err);
+      document.getElementById("tabelBody").innerHTML = `
+        <tr><td colspan="6">
+          <div class="empty-state">
+            <div class="icon">⚠️</div>
+            <p>Gagal terhubung ke server. Pastikan XAMPP aktif.</p>
+          </div>
+        </td></tr>`;
+    }
+  }
+
+  // ============================================================
+  //  POST — Tambah barang baru
+  // ============================================================
+  async function tambahBarang(payload) {
+    const res = await fetch(API.POST, {
+      method  : "POST",
+      headers : { "Content-Type": "application/json" },
+      body    : JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  // ============================================================
+  //  PUT — Update / Edit barang  ← TUGAS PERTEMUAN 7
+  // ============================================================
+  async function editBarang(payload) {
+    const res = await fetch(API.PUT, {
+      method  : "PUT",                               // HTTP Method PUT
+      headers : { "Content-Type": "application/json" },
+      body    : JSON.stringify(payload)              // Kirim JSON ke server
+    });
+    return res.json();
+  }
+
+  // ============================================================
+  //  DELETE — Hapus barang
+  // ============================================================
+  async function hapusBarang(id, nama) {
+    if (!confirm(`Hapus barang "${nama}"?\nTindakan ini tidak dapat dibatalkan.`)) return;
+    try {
+      const result = await fetch(API.DELETE, {
+        method  : "DELETE",
+        headers : { "Content-Type": "application/json" },
+        body    : JSON.stringify({ id })
+      }).then(r => r.json());
+
+      showToast(result.message, result.status === "success" ? "ok" : "error");
+      if (result.status === "success") getBarang();
+    } catch (err) {
+      showToast("Gagal menghapus data", "error");
+    }
+  }
+
+  // ============================================================
+  //  ISI FORM saat tombol Edit diklik
+  // ============================================================
+  function isiFormEdit(id, nama, kategori, harga, stok) {
+    // Simpan ID ke input hidden
+    document.getElementById("id_barang").value    = id;
+
+    // Isi field form dengan data barang
+    document.getElementById("nama_barang").value  = nama;
+    document.getElementById("kategori").value     = kategori;
+    document.getElementById("harga").value        = harga;
+    document.getElementById("stok").value         = stok;
+
+    // Ubah tampilan ke mode EDIT
+    document.getElementById("formTitle").textContent    = "Edit Data Barang";
+    document.getElementById("formIcon").textContent     = "✏️";
+    document.getElementById("formIcon").className       = "form-header-icon edit";
+    document.getElementById("formBadge").textContent    = "PUT";
+    document.getElementById("formBadge").className      = "form-mode-badge put";
+    document.getElementById("btnSimpan").innerHTML      = "<span>🔄</span> Update";
+    document.getElementById("btnSimpan").className      = "btn btn-warning";
+    document.getElementById("btnBatal").style.display   = "inline-flex";
+    document.getElementById("formCard").classList.add("edit-active");
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Reset form ke mode TAMBAH
+  function batalEdit() {
+    document.getElementById("formBarang").reset();
+    document.getElementById("id_barang").value          = "";
+    document.getElementById("formTitle").textContent    = "Tambah Barang Baru";
+    document.getElementById("formIcon").textContent     = "➕";
+    document.getElementById("formIcon").className       = "form-header-icon tambah";
+    document.getElementById("formBadge").textContent    = "POST";
+    document.getElementById("formBadge").className      = "form-mode-badge post";
+    document.getElementById("btnSimpan").innerHTML      = "<span>💾</span> Simpan";
+    document.getElementById("btnSimpan").className      = "btn btn-primary";
+    document.getElementById("btnBatal").style.display   = "none";
+    document.getElementById("formCard").classList.remove("edit-active");
+  }
+
+  // ============================================================
+  //  SUBMIT FORM
+  // ============================================================
+  document.getElementById("formBarang").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const id          = document.getElementById("id_barang").value;  // dari input hidden
+    const nama_barang = document.getElementById("nama_barang").value.trim();
+    const kategori    = document.getElementById("kategori").value.trim();
+    const harga       = document.getElementById("harga").value;
+    const stok        = document.getElementById("stok").value;
+
+    const payload = { id, nama_barang, kategori, harga, stok };
+
+    // Disable tombol saat proses
+    const btn = document.getElementById("btnSimpan");
+    btn.disabled  = true;
+    btn.innerHTML = `<span class="spinner"></span> Menyimpan...`;
+
+    try {
+      // Jika ada ID → mode EDIT (PUT), jika tidak → mode TAMBAH (POST)
+      const result = id ? await editBarang(payload) : await tambahBarang(payload);
+
+      showToast(result.message, result.status === "success" ? "ok" : "error");
+
+      if (result.status === "success") {
+        batalEdit();
+        getBarang();
+      }
+    } catch (err) {
+      showToast("Terjadi kesalahan koneksi", "error");
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ============================================================
+  //  INIT
+  // ============================================================
+  getBarang();
+</script>
+</body>
+</html>
